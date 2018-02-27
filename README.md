@@ -1,15 +1,17 @@
 # qr2mqtt
 
+This project implements a HTML5 based QR code reader which sends all seen codes via MQTT to the specified topic. Therefore it enables you to use your smartphone, tablet or laptop with webcam to be used as cheap QR Scanner in the IoT environment.  
+
 ## Installing
 
 You do not need to install anything. Just visit the following link and use it:
 
-...
+[Try the latest live demo](https://raw.githubusercontent.com/bytebang/qr2mqtt/master/scanner.html)
 
 *Note:* Chrome requires HTTPS when using the WebRTC API. Any pages using this library should be served over HTTPS.
 
 
-This project implements a HTML5 based QR code reader which sends all seen codes via MQTT to the specified topic. Therefore it enables you to use your smartphone, tablet or laptop with webcam to be used as cheap QR Scanner in the IoT environment.  
+
 
 ## Credits
 
