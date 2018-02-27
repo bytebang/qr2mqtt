@@ -30,5 +30,5 @@ It is entirely written in Javascript and utilizes the following components:
 
 ## License
 
-Copyright, 2018 bytebang e.U. []
+Copyright, 2018 [bytebang e.U.](http://www.bytebang.at)
 MIT License. See LICENSE for details.
