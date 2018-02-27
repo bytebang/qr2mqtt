@@ -6,7 +6,7 @@ This project implements a HTML5 based QR code reader which sends all seen codes 
 
 You do not need to install anything. Just visit the following link and use it:
 
-[Try the latest live demo](https://raw.githubusercontent.com/bytebang/qr2mqtt/master/scanner.html)
+[Try the latest live demo](https://tinyurl.com/qr2mqtt)
 
 *Note:* Chrome requires HTTPS when using the WebRTC API. Any pages using this library should be served over HTTPS.
 
