@@ -13,7 +13,7 @@ It will improove / change in the future - so dont expect a table version here.
 
 If you need a stable version then download the [source file](https://raw.githubusercontent.com/bytebang/qr2mqtt/master/scanner.html) to your device and open it from there. 
 
-##Compatibility
+## Compatibility
 
 I have tested the app with chrome on Android and Firefox & Chrome under Linux. It should work with other versions too.
 If you have any questions or wishes then please create an [issue](https://github.com/bytebang/qr2mqtt/issues) here in github.
