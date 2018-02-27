@@ -225,8 +225,17 @@
                         {
                                 if (cameras.length > 0) 
                                 {
-                                     // perform the scans
-                                     scanner.start(cameras[0]);
+                                        // Select (on phone) rear cam  if possible
+                                        var selectedCam = cameras[0];
+                                        $.each(cameras, (i, c) => {
+                                                if (c.name.indexOf('back') != -1) {
+                                                    selectedCam = c;
+                                                    return false;
+                                                }
+                                        });
+                                        
+                                        // Start scanning
+                                        scanner.start(selectedCam);
                                 } 
                                 else 
                                 {
