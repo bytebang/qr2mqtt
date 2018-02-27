@@ -1,0 +1,364 @@
+<html encoding="utf-8"><head>
+        <title>{b} :: QR-Code -> MQTT</title>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+
+
+        <!-- qr code scanning library -->
+        <script type="text/javascript" src="https://rawgit.com/schmich/instascan-builds/master/instascan.min.js"></script>
+
+        <!-- mqtt client library -->
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/paho-mqtt/1.0.1/mqttws31.min.js" type="text/javascript"></script>
+
+        <!-- javascript helper library -->
+        <script src="https://code.jquery.com/jquery-3.3.1.min.js" type="text/javascript"></script>
+
+        <!-- ui via bootstrap -->
+        <!script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" type="text/javascript"></script>
+        <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+
+
+        <!-- our own stylesheet definitions -->
+        <style>
+                body {
+                    background: #F5F5F5;
+                    
+                }
+
+                label{
+                        color: #2D7B93;
+                        font-weight: bold;
+                }
+
+                h1 {
+                    color: #a6a6a6;
+                }
+
+        </style>
+
+        <!-- here comes the application logic -->
+        <script type="text/javascript">
+
+                //------------------------- MQTT LOGIC ----------------------
+                // Create a client instance
+                var client = null;
+                var connected = false;
+
+                // called when the client disconnects
+                function onMqttConnectionEstablished() 
+                {
+                        // Once a connection has been made, make a subscription and send a message.
+                        console.log("Connected to MQTT broker");
+                        connected = true;
+                        $("#connectbutton").text("Disconnect");
+                        lockdownMQTTGuiControls(true);  
+
+                        // subscribe to our own topic to see what is happening within it
+                        client.subscribe($("#topic").val());
+
+                }
+
+                // called when the client loses its connection
+                function onMqttConnectionLost(responseObject) 
+                {
+                        if(responseObject.errorCode !== 0) 
+                        {
+                                console.log("Connection to MQTT broker lost: "+responseObject.errorMessage);
+                        }
+                        connected = false;
+                        $("#connectbutton").text("Connect");
+                        lockdownMQTTGuiControls(false); 
+                }
+
+                // called when a message arrives
+                function onMqttMessageArrived(message) 
+                {
+                        console.log('Message Recieved: Topic: ', message.destinationName, '. Payload: ', message.payloadString, '. QoS: ', message.qos, '>', message);
+
+                        // write into gui
+                        $("#latestMessage").val(new Date().toISOString() + " -> " + message.payloadString);
+                }
+
+                // Disconnects from the MQTT broker
+                function disconnectFromMqttBroker()
+                {
+                    console.info('Disconnecting from Server');
+                    var topic = $("#topic").val();
+                    var lastWill = $("#lastWill").val();
+
+                    if(lastWill.length > 0)
+                    {
+                      var msg = new Paho.MQTT.Message(lastWill);
+                      msg.destinationName = topic;
+                      client.send(msg);
+                    }
+                    client.disconnect();
+                }
+
+                // enables or disables all MQTT gui controls (except the button)
+                function lockdownMQTTGuiControls(tgtstate)     
+                {
+                    $("#hostInput").prop('disabled', tgtstate);
+                    $("#portInput").prop('disabled', tgtstate);
+                    $("#clientIdInput").prop('disabled', tgtstate);
+                    $("#pathInput").prop('disabled', tgtstate);
+                    $("#userInput").prop('disabled', tgtstate);
+                    $("#passInput").prop('disabled', tgtstate);
+                    $("#keepAliveInput").prop('disabled', tgtstate);
+                    $("#timeoutInput").prop('disabled', tgtstate);
+                    $("#tlsInput").prop('disabled', tgtstate);
+                    $("#cleanSessionInput").prop('disabled', tgtstate);
+                    $("#topic").prop('disabled', tgtstate);
+                    $("#lastWill").prop('disabled', tgtstate);
+                }
+
+                // Establishes a connection to the broker
+                function connectToMqttBroker()
+                {
+                    var hostname = $("#hostInput").val();
+                    var port = $("#portInput").val();
+                    var clientId = $("#clientIdInput").val();
+                    var path = $("#pathInput").val();
+                    var user = $("#userInput").val();
+                    var pass = $("#passInput").val();
+                    var keepAlive = Number($("#keepAliveInput").val());
+                    var timeout = Number($("#timeoutInput").val());
+                    var tls = $("#tlsInput").is(':checked');
+                    var cleanSession = $("#cleanSessionInput").is(':checked');
+                    var topic = $("#topic").val();
+                    var lastWill = $("#lastWill").val();
+
+
+                    if(path.length > 0)
+                    {
+                        client = new Paho.MQTT.Client(hostname, Number(port), path, clientId);
+                    } 
+                    else 
+                    {
+                        client = new Paho.MQTT.Client(hostname, Number(port), clientId);
+                    }
+                    
+                    // set callback handlers
+                    client.onConnectionLost = onMqttConnectionLost;
+                    client.onMessageArrived = onMqttMessageArrived;
+                    client.onConnected = onMqttConnectionEstablished;
+
+                    // build the options for the client
+                    var options = {
+                      invocationContext: {host : hostname, port: port, path: client.path, clientId: clientId},
+                      timeout: timeout,
+                      keepAliveInterval:keepAlive,
+                      cleanSession: cleanSession,
+                      useSSL: tls,
+                      onSuccess: onMqttConnectionEstablished,
+                     // onFailure: onFail
+                    };
+
+                    // if the user defines a last will, then we will send one ot a soon as we disconnect
+                    if(lastWill.length > 0)
+                    {
+                      var lastWillMessage = new Paho.MQTT.Message(lastWill);
+                      lastWillMessage.destinationName = topic;
+                      options.willMessage = lastWillMessage;
+                    }
+
+                    if(user.length > 0){
+                      options.userName = user;
+                    }
+
+                    if(pass.length > 0){
+                      options.password = pass;
+                    }
+
+                    // connect the client
+                    client.connect(options);
+
+                }
+                
+
+                //------------------------- QR CODE LOGIC ----------------------
+                $(window).on('load',function(){
+
+                        // Event handler for the connect button
+                        $("#connectbutton").click(function() {
+                                x = 1;
+                                if(connected == false)
+                                {
+                                        connectToMqttBroker();
+                                }
+                                else
+                                {
+                                        disconnectFromMqttBroker();
+                                }
+                        });
+
+                        // Generate an unique client id
+                        $("#clientIdInput").val("bb-qr2mqtt-" + new Date().getTime())
+
+                        // generate a public ip based topic name
+                        $.getJSON('http://www.geoplugin.net/json.gp?jsoncallback=?', function(data) {
+                                $("#topic").val("qr2mqtt/" + data.geoplugin_request);
+                        });
+
+                        // After the page has loaded we will start to scan
+                        let scanner = new Instascan.Scanner({ video: document.getElementById('preview') });
+                        scanner.addListener('scan', function (content) {
+                                
+                                // Log to console
+                                console.log("Scanned QR Code: " + content);
+
+                                // write into gui
+                                $("#latestScan").val(new Date().toISOString() + " -> " + content);
+
+                                // And send via MQTT
+                                if(connected)
+                                {
+                                        message = new Paho.MQTT.Message(content);
+                                        message.destinationName = $("#topic").val();
+                                        client.send(message);
+                                }
+                                
+                        });
+                        
+                        Instascan.Camera.getCameras().then(function (cameras) 
+                        {
+                                if (cameras.length > 0) 
+                                {
+                                     // perform the scans
+                                     scanner.start(cameras[0]);
+                                } 
+                                else 
+                                {
+                                     console.error('No cameras found.');
+                                }
+                        }).catch(function (e) {
+                                console.error(e);
+                        });
+                });
+
+
+        </script>
+
+</head><body>
+
+<h1>{b} QR-Code -> MQTT</h1>
+<div class="row">
+        <div class="col-sm-6">
+                <form>
+                        <div class="row"> <!-- 1st line -->
+                                <div class="col-lg-5">
+                                        <div class="form-group">
+                                                <label for="hostInput">Host</label>
+                                                <input type="text" class="form-control" id="hostInput" value="iot.eclipse.org">
+                                        </div>
+                                </div>
+                                <div class="col-lg-2">
+                                        <div class="form-group">
+                                                <label for="portInput">Port</label>
+                                                <input type="text" class="form-control" id="portInput" value="443">
+                                        </div>
+                                </div>
+                                <div class="col-lg-4">
+                                        <div class="form-group">
+                                                <label for="clientIdInput">Client ID</label>
+                                                <input type="text" class="form-control" id="clientIdInput" value="javascript-client">
+                                        </div>
+                                </div>
+                        </div>
+
+                        <div class="row"> <!-- 2nd line -->
+                                <div class="col-lg-2">
+                                        <div class="form-group">
+                                                <label for="pathInput">Path</label>
+                                                <input type="text" class="form-control" id="pathInput" value="/ws">
+                                        </div>
+                                </div>
+                                <div class="col-lg-2">
+                                        <div class="form-group">
+                                                <label for="userInput">Username</label>
+                                                <input type="text" class="form-control" id="userInput">
+                                        </div>
+                                </div>
+
+                                <div class="col-lg-2">
+                                        <div class="form-group">
+                                                <label for="passInput">Password</label>
+                                                <input type="password" class="form-control" id="passInput">
+                                        </div>
+                                </div>
+
+                                <div class="col-lg-2">
+                                        <div class="form-group">
+                                                <label for="keepAliveInput">Keep-Alive</label>
+                                                <input type="text" class="form-control" id="keepAliveInput" value="60">
+                                        </div>
+                                </div>
+
+                                <div class="col-lg-1">
+                                        <div class="form-group">
+                                                <label for="timeoutInput">Timeout</label>
+                                                <input type="text" class="form-control" id="timeoutInput" value="3">
+                                        </div>
+                                </div>
+
+                                <div class="col-lg-1">
+                                        <div class="form-group">
+                                                <label for="tlsInput">TLS</label>
+                                                <input type="checkbox" class="special-checkbox" id="tlsInput" value="" checked>
+                                        </div>
+                                </div>
+                                <div class="col-lg-2">
+                                        <div class="form-group">
+                                                <label for="cleanSessionInput">Clean Session</label>
+                                                <input type="checkbox" class="special-checkbox" id="cleanSessionInput" value="" checked>
+                                        </div>
+                                </div>
+                        </div>
+                        <div class="row"> <!-- 3rd line -->
+                                <div class="col-lg-5">
+                                        <div class="form-group">
+                                                <label for="topic">Target Topic</label>
+                                                <input type="text" class="form-control" id="topic" value="qr2mqtt">
+                                        </div>
+                                </div>
+                                <div class="col-lg-5">
+                                        <div class="form-group">
+                                                <label for="topic">LastWill</label>
+                                                <input type="text" class="form-control" id="lastWill" value="Scanner disconnected">
+                                        </div>
+                                </div>
+                                <div class="col-lg-2">
+                                        <div class="form-group">
+                                                <label for="clientConnectButton"></label>
+                                                <button type="button" class="btn btn-primary" id="connectbutton">Connect</button>
+                                        </div>
+                                </div>
+                        </div>
+                        <div class="row"> <!-- 4th line -->
+                               <div class="col-lg-5">
+                                        <div class="form-group">
+                                                <label for="topic">Latest local Scan</label>
+                                                <textarea class="form-control" id="latestScan" rows="3" disabled></textarea>
+                                        </div>
+                                </div>
+                                <div class="col-lg-5">
+                                        <div class="form-group">
+                                                <label for="topic">Latest Message in the topic</label>
+                                                <textarea class="form-control" id="latestMessage" rows="3" disabled></textarea>                                                
+                                        </div>
+                                </div>
+                        </div>
+                </form>
+
+        </div>
+        <!-- Camera preview -->
+        <div class="col-sm-6">
+                <video id="preview"></video>
+        </div>
+</div> 
+<p>
+This page comes without any warranty. Use it for your own purposes. (c) 2018 - <a href="http://www.bytebang.at">bytebang e.U.</a>
+</p>
+</body></html>
+
+
+
