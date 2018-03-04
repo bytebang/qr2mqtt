@@ -50,11 +50,13 @@
         <!-- here comes the application logic -->
         <script type="text/javascript">
 
-                //------------------------- MQTT LOGIC ----------------------
-                // Create a client instance
+                
+                // Global variables
                 var client = null;
                 var connected = false;
+                var availablecameras = [];
 
+                //------------------------- MQTT LOGIC ----------------------
                 // called when the client disconnects
                 function onMqttConnectionEstablished() 
                 {
@@ -186,11 +188,10 @@
 
                 }
                 
-
-                //------------------------- QR CODE LOGIC ----------------------
-                availablecameras = [];
+                // on Load Eventhandler
                 $(window).on('load',function(){
 
+                        // *** Init MQTT Stuff ***
                         // Event handler for the connect button
                         $("#connectbutton").click(function() {
                                 x = 1;
@@ -208,11 +209,11 @@
                         $("#clientIdInput").val("bb-qr2mqtt-" + new Date().getTime())
 
                         // generate a public ip based topic name
-                        $.getJSON('http://www.geoplugin.net/json.gp?jsoncallback=?', function(data) {
-                                $("#topic").val("qr2mqtt/" + data.geoplugin_request);
+                        $.getJSON('//jsonip.com/?callback=?', function(data) {
+                                $("#topic").val("qr2mqtt/" + data.ip);
                         });
-
-                        // After the page has loaded we will start to scan
+                        
+                        // *** Init QR Code Stuff ***--
                         let scanner = new Instascan.Scanner({ video: document.getElementById('preview') });
                         scanner.addListener('scan', function (content) {
                                 
@@ -414,7 +415,7 @@
         </div>
         <!-- Camera preview -->
         <div class="col-sm-6">
-                <video id="preview"></video>
+                <video id="preview">Select a camera ...</video>
                 <div id="availablecams" class="text-center">
                                 
                 </div>
