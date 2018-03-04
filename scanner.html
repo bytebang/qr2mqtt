@@ -251,7 +251,7 @@
                                                 camname = c.name;
                                         }
                                         
-                                        // Remember the camera
+                                        // Remember the camera (normal)
                                         availablecameras[camname] = {};
                                         availablecameras[camname].instacam = c;
                                         availablecameras[camname].mirrored = false;
@@ -260,9 +260,11 @@
                                         availablecameras[camname].button = $("<button/>").text(camname)
                                                                                 .attr({ type: "button", class: "btn btn-primary cambtn", value:camname})
                                                                                 .appendTo("#availablecams");
-
+                                        
+                                        // add a spacer
                                         $("<span/>").attr({class:"hspacer"}).appendTo("#availablecams");
 
+                                        // Remember the mirrored version of the same camera
                                         camname = camname + " (mirrored)";
                                         availablecameras[camname] = {};
                                         availablecameras[camname].instacam = c;
@@ -270,29 +272,29 @@
                                         availablecameras[camname].button = $("<button/>").text(camname)
                                                                                 .attr({ type: "button", class: "btn btn-primary cambtn", value:camname})
                                                                                 .appendTo("#availablecams");
+                                        // add a new line
                                         $("<div/>").appendTo("#availablecams");
                                 });
         
-                                // Select the best button (back facing and mirroring for mobile phones)
-                                selectedcam = null;
+                                // Select the best button (back facing without mirroring for mobile phones)
+                                defaultcam = null;
                                 $.each(availablecameras, function(index, cam){
-                               
                                         btn = cam.button;
                                         caption = btn.val().toLowerCase(); 
                                         if(caption.includes("back") == true && caption.includes("mirror") == false)
                                         {
-                                                selectedcam = cam;
+                                                defaultcam = cam;
                                         }
                                 });
                                 
                                 // if we have not found a camers we take the first that we find
-                                if(selectedcam == null)
+                                if(defaultcam == null)
                                 {
-                                       selectedcam = Object.values(availablecameras)[0];
+                                       defaultcam = Object.values(availablecameras)[0];
                                 }
                                 
                                 // ... and select it
-                                selectedcam.button.click();
+                                defaultcam.button.click();
 
                         }).catch(function (e) {
                                 console.error(e);
@@ -304,7 +306,6 @@
                                 cam = availablecameras[btn.target.value];
                                 scanner.mirror = cam.mirrored;
                                 scanner.start(cam.instacam);
-
                         });
 
 
