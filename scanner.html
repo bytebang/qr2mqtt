@@ -178,6 +178,7 @@
                 
 
                 //------------------------- QR CODE LOGIC ----------------------
+                availablecameras = [];
                 $(window).on('load',function(){
 
                         // Event handler for the connect button
@@ -221,32 +222,52 @@
                                 
                         });
                         
+                        // List the available cameras
                         Instascan.Camera.getCameras().then(function (cameras) 
                         {
-                                if (cameras.length > 0) 
+                                
+                                if (cameras.length == 0)
+                                {    
+                                        // No camera found
+                                        console.error('No cameras found.');
+                                        $("#cameras").text("No cameras found");
+                                }
+                                else if (cameras.length == 1)
                                 {
-                                        // Select (on phone) rear cam  if possible
-                                        var selectedCam = cameras[0];
-                                        $.each(cameras, (i, c) => {
-                                                
-                                                if (c.name != null && c.name.indexOf('back') != -1) {
-                                                    selectedCam = c;
-                                                    return false;
-                                                }
-                                        });
-                                        
-                                        // Start scanning
-                                        scanner.start(selectedCam);
-                                } 
+                                        // only one camera - start to scan right away
+                                        scanner.start(cameras[0]);
+                                }
                                 else 
                                 {
-                                     console.error('No cameras found.');
-                                }
+                                        // Multiple cameras found - let the user select
+                                        $.each(cameras, (i, c) => {
+                                                camname = "Cam#" + (i+1);
+                                                if(c.name != null)
+                                                {
+                                                        camname += " - " + c.name       
+                                                }
+                                                
+                                                // Remember the camera
+                                                availablecameras[camname] = c;
+
+                                                // And add a button for it
+                                                $("<button/>").text("Use " + camname)
+                                                                .attr({ type: "button", class: "btn btn-primary cambtn", value:camname})
+                                                                .appendTo("#availablecams");
+                                        });
+                                } 
+
                         }).catch(function (e) {
                                 console.error(e);
                         });
-                });
+                        
+                        // Eventhandler for camera selection
+                        $('#availablecams').on('click', '.cambtn', function(btn) {
+                                cam = availablecameras[btn.target.value];
+                                scanner.start(cam);
+                        });
 
+                });
 
         </script>
 
@@ -365,6 +386,9 @@
         <!-- Camera preview -->
         <div class="col-sm-6">
                 <video id="preview"></video>
+                <div id="availablecams" class="text-center">
+                                
+                </div>
         </div>
 </div> 
 <p>
