@@ -44,6 +44,10 @@
                 h1 {
                     color: #a6a6a6;
                 }
+                
+                .hspacer {
+                    width: 40px; /* define margin as you see fit */
+                }
 
         </style>
 
@@ -54,7 +58,7 @@
                 // Global variables
                 var client = null;
                 var connected = false;
-                var availablecameras = [];
+                var availablecameras = {};
 
                 //------------------------- MQTT LOGIC ----------------------
                 // called when the client disconnects
@@ -237,68 +241,72 @@
                         Instascan.Camera.getCameras().then(function (cameras) 
                         {
                                 selectedcamera = null;
+                                // Multiple cameras found - let the user select
+                                $.each(cameras, (i, c) => {
 
-                                if (cameras.length == 0)
-                                {    
-                                        // No camera found
-                                        console.error('No cameras found.');
-                                        $("#cameras").text("No cameras found");
-                                }
-                                else if (cameras.length == 1)
-                                {
-                                        // only one camera - start to scan right away
-                                        selectedcamera = cameras[0];
-                                }
-                                else 
-                                {
-                                        // Multiple cameras found - let the user select
-                                        $.each(cameras, (i, c) => {
-
-                                                // Buid a meaningful name
-                                                camname = "Cam#" + (i+1);
-                                                if(c.name != null && c.name.length > 0)
-                                                {
-                                                        camname = c.name;
-                                                }
-                                                
-                                                // Remember the camera
-                                                availablecameras[camname] = c;
-
-                                                // try to find a back facing camera (for phones)
-                                                if(camname.toLowerCase().includes("back"))
-                                                {
-                                                        selectedcamera = c;  
-                                                        scanner.mirror = false;  
-                                                }
-
-                                                // And add a button for it
-                                                $("<button/>").text("Use " + camname)
-                                                                .attr({ type: "button", class: "btn btn-primary cambtn", value:camname})
-                                                                .appendTo("#availablecams");
-                                        });
-
-                                        // if we did not find a front facing camera then we are gonna use the first one
-                                        if(selectedcamera == null)
+                                        // Buid a meaningful name
+                                        camname = "Cam#" + (i+1);
+                                        if(c.name != null && c.name.length > 0)
                                         {
-                                               selectedcamera = cameras[0];
+                                                camname = c.name;
                                         }
-                                } 
+                                        
+                                        // Remember the camera
+                                        availablecameras[camname] = {};
+                                        availablecameras[camname].instacam = c;
+                                        availablecameras[camname].mirrored = false;
 
-                                // use the selected camera
-                                if(selectedcamera != null)
+                                        // And add a button for it
+                                        availablecameras[camname].button = $("<button/>").text(camname)
+                                                                                .attr({ type: "button", class: "btn btn-primary cambtn", value:camname})
+                                                                                .appendTo("#availablecams");
+
+                                        $("<span/>").attr({class:"hspacer"}).appendTo("#availablecams");
+
+                                        camname = camname + " (mirrored)";
+                                        availablecameras[camname] = {};
+                                        availablecameras[camname].instacam = c;
+                                        availablecameras[camname].mirrored = true;
+                                        availablecameras[camname].button = $("<button/>").text(camname)
+                                                                                .attr({ type: "button", class: "btn btn-primary cambtn", value:camname})
+                                                                                .appendTo("#availablecams");
+                                        $("<div/>").appendTo("#availablecams");
+                                });
+        
+                                // Select the best button (back facing and mirroring for mobile phones)
+                                selectedcam = null;
+                                $.each(availablecameras, function(index, cam){
+                               
+                                        btn = cam.button;
+                                        caption = btn.val().toLowerCase(); 
+                                        if(caption.includes("back") && caption.includes("mirror"))
+                                        {
+                                                selectedcam = cam;
+                                        }
+                                });
+                                
+                                // if we have not found a camers we take the first that we find
+                                if(selectedcam == null)
                                 {
-                                        scanner.start(selectedcamera);
+                                       selectedcam = Object.values(availablecameras)[0];
                                 }
+                                
+                                // ... and select it
+                                selectedcam.button.click();
 
                         }).catch(function (e) {
                                 console.error(e);
                         });
                         
+
                         // Eventhandler for camera selection
                         $('#availablecams').on('click', '.cambtn', function(btn) {
                                 cam = availablecameras[btn.target.value];
-                                scanner.start(cam);
+                                scanner.mirror = cam.mirrored;
+                                scanner.start(cam.instacam);
+
                         });
+
 
                 });
 
