@@ -233,11 +233,11 @@
                                         console.error('No cameras found.');
                                         $("#cameras").text("No cameras found");
                                 }
-                                else if (cameras.length == 1)
+                                /*else if (cameras.length == 1)
                                 {
                                         // only one camera - start to scan right away
                                         selectedcamera = cameras[0];
-                                }
+                                }*/
                                 else 
                                 {
                                         // Multiple cameras found - let the user select
@@ -248,7 +248,7 @@
                                                         camname = c.name;
 
                                                         // try to find a front facing camera
-                                                        if(c.name.toLower().includes("front"))
+                                                        if(c.name.toLowerCase().includes("front"))
                                                         {
                                                             selectedcamera = c;    
                                                         }
