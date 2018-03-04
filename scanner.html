@@ -259,7 +259,7 @@
                                                         camname = c.name;
 
                                                         // try to find a front facing camera
-                                                        if(c.name.toLowerCase().indexof("back") != -1)
+                                                        if(c.name.toLowerCase().includes("back"))
                                                         {
                                                             selectedcamera = c;    
                                                         }
@@ -275,7 +275,7 @@
                                         });
 
                                         // if we did not find a front facing camera
-                                        if(selectedcamera != null)
+                                        if(selectedcamera == null)
                                         {
                                                selectedcamera = cameras[0];
                                         }
