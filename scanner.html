@@ -253,22 +253,22 @@
                                 {
                                         // Multiple cameras found - let the user select
                                         $.each(cameras, (i, c) => {
+
+                                                // Buid a meaningful name
                                                 camname = "Cam#" + (i+1);
                                                 if(c.name != null && c.name.length > 0)
                                                 {
                                                         camname = c.name;
-
-                                                        alert(camname.toLowerCase());
-                                                        // try to find a front facing camera
-                                                        if(camname.toLowerCase().includes("back"))
-                                                        {
-                                                            $("#cameras").text("Using back camera");
-                                                            selectedcamera = c;    
-                                                        }
                                                 }
                                                 
                                                 // Remember the camera
                                                 availablecameras[camname] = c;
+
+                                                // try to find a back facing camera (for phones)
+                                                if(camname.toLowerCase().includes("back"))
+                                                {
+                                                    selectedcamera = c;    
+                                                }
 
                                                 // And add a button for it
                                                 $("<button/>").text("Use " + camname)
@@ -276,10 +276,9 @@
                                                                 .appendTo("#availablecams");
                                         });
 
-                                        // if we did not find a front facing camera
+                                        // if we did not find a front facing camera then we are gonna use the first one
                                         if(selectedcamera == null)
                                         {
-                                                $("#cameras").text("Using first camera");
                                                selectedcamera = cameras[0];
                                         }
                                 } 
