@@ -258,8 +258,10 @@
                                                 {
                                                         camname = c.name;
 
+                                                        alert(c.name.toLowerCase());
+                                                        alert(
                                                         // try to find a front facing camera
-                                                        if(c.name.toLowerCase().indexOf("back") != -1)
+                                                        if(c.name.toLowerCase().includes("back"))
                                                         {
                                                             selectedcamera = c;    
                                                         }
@@ -277,6 +279,7 @@
                                         // if we did not find a front facing camera
                                         if(selectedcamera == null)
                                         {
+                                                alert("Selecting first camera");
                                                selectedcamera = cameras[0];
                                         }
                                 } 
@@ -416,9 +419,7 @@
         <!-- Camera preview -->
         <div class="col-sm-6">
                 <video id="preview">Select a camera ...</video>
-                <div id="availablecams" class="text-center">
-                                
-                </div>
+                <div id="availablecams" class="text-center"></div>
         </div>
 </div> 
 <p>
