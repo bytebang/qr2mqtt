@@ -258,11 +258,11 @@
                                                 {
                                                         camname = c.name;
 
-                                                        alert(c.name.toLowerCase());
+                                                        alert(camname.toLowerCase());
                                                         // try to find a front facing camera
-                                                        if(c.name.toLowerCase().includes("back"))
+                                                        if(camname.toLowerCase().includes("back"))
                                                         {
-                                                            alert("Using back camera");
+                                                            $("#cameras").text("Using back camera");
                                                             selectedcamera = c;    
                                                         }
                                                 }
@@ -279,7 +279,7 @@
                                         // if we did not find a front facing camera
                                         if(selectedcamera == null)
                                         {
-                                                alert("Selecting first camera");
+                                                $("#cameras").text("Using first camera");
                                                selectedcamera = cameras[0];
                                         }
                                 } 
