@@ -267,7 +267,8 @@
                                                 // try to find a back facing camera (for phones)
                                                 if(camname.toLowerCase().includes("back"))
                                                 {
-                                                    selectedcamera = c;    
+                                                        selectedcamera = c;  
+                                                        scanner.mirror = false;  
                                                 }
 
                                                 // And add a button for it
