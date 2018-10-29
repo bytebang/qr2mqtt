@@ -13,6 +13,11 @@ It will improove / change in the future - so dont expect a stable version here.
 
 If you need a stable version then download the [source file](https://raw.githubusercontent.com/bytebang/qr2mqtt/master/scanner.html) to your device and open it from there. 
 
+## Using
+
+The default parameters are pointing to a public broker with (more ore less) meaningful default values. However, you can set any of the GUI values using URL parameters. For example
+`https://rawgit.com/bytebang/qr2mqtt/master/scanner.html?host=something.noip.org&port=8080&tls=false&topic=house/1st_floor/signaling&lastWill=This is the end` will give you the latest version of the scanner which points to the broker `something.noip.org` at the port `8080` without TLS and `house/1st_floor/signaling` as the suggested topic. If the scanner is disconnected, then the last will `This is the end` will be published.
+
 ## Compatibility
 
 I have tested the app with chrome on Android and Firefox & Chrome under Linux. It should work with other versions too.

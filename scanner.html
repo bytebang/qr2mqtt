@@ -60,6 +60,20 @@
                 var connected = false;
                 var availablecameras = {};
 
+                //------------------------- RANDOM HELPER SCRIPTS ----------------------
+                function urlParamOrDefault(name, defaultvalue)
+                {
+                        var results = new RegExp('[\?&]' + name + '=([^&#]*)').exec(window.location.href);
+                        if (results == null)
+                        {
+                                return defaultvalue;
+                        }
+                        else
+{
+                                return decodeURI(results[1]) || 0;
+                        }
+                }
+
                 //------------------------- MQTT LOGIC ----------------------
                 // called when the client disconnects
                 function onMqttConnectionEstablished() 
@@ -142,8 +156,8 @@
                     var timeout = Number($("#timeoutInput").val());
                     var tls = $("#tlsInput").is(':checked');
                     var cleanSession = $("#cleanSessionInput").is(':checked');
-                    var topic = $("#topic").val();
-                    var lastWill = $("#lastWill").val();
+                    var topic = $("#topicInput").val();
+                    var lastWill = $("#lastWillInput").val();
 
 
                     if(path.length > 0)
@@ -192,6 +206,43 @@
 
                 }
                 
+                // Sets the initial Values for the GUI controls
+                function setDefaultValues(tgtstate)     
+                {
+                        urlParamOrDefault("")
+
+
+                        // generate a public ip based topic name
+                        var theTopic = urlParamOrDefault("topic",null);
+                        if(theTopic == null)
+                        {
+                                $.getJSON('//jsonip.com/?callback=?', function(data) {
+                                        $("#topic").val("qr2mqtt/" + data.ip);
+                                });
+                        }
+                        else
+                        {
+                                $("#topicInput").val(theTopic);
+                        }
+
+                        $("#hostInput").val(urlParamOrDefault("host","iot.eclipse.org"));
+                        $("#portInput").val(urlParamOrDefault("port","443"));
+                        $("#clientIdInput").val(urlParamOrDefault("clientId","bb-qr2mqtt-" + new Date().getTime()));
+                        $("#pathInput").val(urlParamOrDefault("path","/ws"));
+                        $("#userInput").val(urlParamOrDefault("user",""));
+                        $("#passInput").val(urlParamOrDefault("pass",""));
+                        $("#keepAliveInput").val(urlParamOrDefault("keepAlive","60"));
+
+                        $("#timeoutInput").val(urlParamOrDefault("timeout","3"));
+                        $("#lastWillInput").val(urlParamOrDefault("lastWill","Scanner disconnected"));
+
+                        var tls = urlParamOrDefault("tls","true");
+                        $("#tlsInput").prop('checked', (tls == "true" || tls == "1"));
+        
+                        var cleansession = urlParamOrDefault("cleanSession","true");
+                        $("#cleanSessionInput").prop('checked', (cleansession == "true" || cleansession == "1"));
+                }
+
                 // on Load Eventhandler
                 $(window).on('load',function(){
 
@@ -209,13 +260,8 @@
                                 }
                         });
 
-                        // Generate an unique client id
-                        $("#clientIdInput").val("bb-qr2mqtt-" + new Date().getTime())
-
-                        // generate a public ip based topic name
-                        $.getJSON('//jsonip.com/?callback=?', function(data) {
-                                $("#topic").val("qr2mqtt/" + data.ip);
-                        });
+                        // Set Default Values for all Fields
+                        setDefaultValues();
                         
                         // *** Init QR Code Stuff ***--
                         let scanner = new Instascan.Scanner({ video: document.getElementById('preview') });
@@ -231,7 +277,7 @@
                                 if(connected)
                                 {
                                         message = new Paho.MQTT.Message(content);
-                                        message.destinationName = $("#topic").val();
+                                        message.destinationName = $("#topicInput").val();
                                         client.send(message);
                                 }
                                 
@@ -323,19 +369,19 @@
                                 <div class="col-lg-5">
                                         <div class="form-group">
                                                 <label for="hostInput">Host</label>
-                                                <input type="text" class="form-control" id="hostInput" value="iot.eclipse.org">
+                                                <input type="text" class="form-control" id="hostInput">
                                         </div>
                                 </div>
                                 <div class="col-lg-2">
                                         <div class="form-group">
                                                 <label for="portInput">Port</label>
-                                                <input type="text" class="form-control" id="portInput" value="443">
+                                                <input type="text" class="form-control" id="portInput">
                                         </div>
                                 </div>
                                 <div class="col-lg-4">
                                         <div class="form-group">
                                                 <label for="clientIdInput">Client ID</label>
-                                                <input type="text" class="form-control" id="clientIdInput" value="javascript-client">
+                                                <input type="text" class="form-control" id="clientIdInput">
                                         </div>
                                 </div>
                         </div>
@@ -344,7 +390,7 @@
                                 <div class="col-lg-2">
                                         <div class="form-group">
                                                 <label for="pathInput">Path</label>
-                                                <input type="text" class="form-control" id="pathInput" value="/ws">
+                                                <input type="text" class="form-control" id="pathInput">
                                         </div>
                                 </div>
                                 <div class="col-lg-2">
@@ -364,41 +410,41 @@
                                 <div class="col-lg-2">
                                         <div class="form-group">
                                                 <label for="keepAliveInput">Keep-Alive</label>
-                                                <input type="text" class="form-control" id="keepAliveInput" value="60">
+                                                <input type="text" class="form-control" id="keepAliveInput">
                                         </div>
                                 </div>
 
                                 <div class="col-lg-1">
                                         <div class="form-group">
                                                 <label for="timeoutInput">Timeout</label>
-                                                <input type="text" class="form-control" id="timeoutInput" value="3">
+                                                <input type="text" class="form-control" id="timeoutInput">
                                         </div>
                                 </div>
 
                                 <div class="col-lg-1">
                                         <div class="form-group">
                                                 <label for="tlsInput">TLS</label>
-                                                <input type="checkbox" class="special-checkbox" id="tlsInput" value="" checked>
+                                                <input type="checkbox" class="special-checkbox" id="tlsInput" value="">
                                         </div>
                                 </div>
                                 <div class="col-lg-2">
                                         <div class="form-group">
                                                 <label for="cleanSessionInput">Clean Session</label>
-                                                <input type="checkbox" class="special-checkbox" id="cleanSessionInput" value="" checked>
+                                                <input type="checkbox" class="special-checkbox" id="cleanSessionInput" value="">
                                         </div>
                                 </div>
                         </div>
                         <div class="row"> <!-- 3rd line -->
                                 <div class="col-lg-5">
                                         <div class="form-group">
-                                                <label for="topic">Target Topic</label>
-                                                <input type="text" class="form-control" id="topic" value="qr2mqtt">
+                                                <label for="topicInput">Target Topic</label>
+                                                <input type="text" class="form-control" id="topicInput">
                                         </div>
                                 </div>
                                 <div class="col-lg-5">
                                         <div class="form-group">
-                                                <label for="topic">LastWill</label>
-                                                <input type="text" class="form-control" id="lastWill" value="Scanner disconnected">
+                                                <label for="lastWillInput">LastWill</label>
+                                                <input type="text" class="form-control" id="lastWillInput">
                                         </div>
                                 </div>
                                 <div class="col-lg-2">
