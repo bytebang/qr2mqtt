@@ -85,9 +85,17 @@
                         lockdownMQTTGuiControls(true);  
 
                         // subscribe to our own topic to see what is happening within it
-                        client.subscribe($("#topic").val());
+                        client.subscribe($("#topicInput").val());
 
                 }
+                // called when the client fails to connect
+                function onMqttConnectionFailed() 
+                {
+                        // Once a connection has been made, make a subscription and send a message.
+                        console.log("Connectio to broker failed");
+                        console.log(client.getTraceLog());
+                }
+
 
                 // called when the client loses its connection
                 function onMqttConnectionLost(responseObject) 
@@ -114,8 +122,8 @@
                 function disconnectFromMqttBroker()
                 {
                     console.info('Disconnecting from Server');
-                    var topic = $("#topic").val();
-                    var lastWill = $("#lastWill").val();
+                    var topic = $("#topicInput").val();
+                    var lastWill = $("#lastWillInput").val();
 
                     if(lastWill.length > 0)
                     {
@@ -139,8 +147,8 @@
                     $("#timeoutInput").prop('disabled', tgtstate);
                     $("#tlsInput").prop('disabled', tgtstate);
                     $("#cleanSessionInput").prop('disabled', tgtstate);
-                    $("#topic").prop('disabled', tgtstate);
-                    $("#lastWill").prop('disabled', tgtstate);
+                    $("#topicInput").prop('disabled', tgtstate);
+                    $("#lastWillInput").prop('disabled', tgtstate);
                 }
 
                 // Establishes a connection to the broker
@@ -182,7 +190,7 @@
                       cleanSession: cleanSession,
                       useSSL: tls,
                       onSuccess: onMqttConnectionEstablished,
-                     // onFailure: onFail
+                      onFailure: onMqttConnectionFailed
                     };
 
                     // if the user defines a last will, then we will send one ot a soon as we disconnect
@@ -217,7 +225,7 @@
                         if(theTopic == null)
                         {
                                 $.getJSON('//jsonip.com/?callback=?', function(data) {
-                                        $("#topic").val("qr2mqtt/" + data.ip);
+                                        $("#topicInput").val("qr2mqtt/" + data.ip);
                                 });
                         }
                         else
@@ -449,7 +457,7 @@
                                 </div>
                                 <div class="col-lg-2">
                                         <div class="form-group">
-                                                <label for="clientConnectButton"></label>
+                                                <label for="connectbutton"></label>
                                                 <button type="button" class="btn btn-primary" id="connectbutton">Connect</button>
                                         </div>
                                 </div>
@@ -457,13 +465,13 @@
                         <div class="row"> <!-- 4th line -->
                                <div class="col-lg-5">
                                         <div class="form-group">
-                                                <label for="topic">Latest local Scan</label>
+                                                <label for="latestScan">Latest local Scan</label>
                                                 <textarea class="form-control" id="latestScan" rows="3" disabled></textarea>
                                         </div>
                                 </div>
                                 <div class="col-lg-5">
                                         <div class="form-group">
-                                                <label for="topic">Latest Message in the topic</label>
+                                                <label for="latestMessage">Latest Message in the topic</label>
                                                 <textarea class="form-control" id="latestMessage" rows="3" disabled></textarea>                                                
                                         </div>
                                 </div>
